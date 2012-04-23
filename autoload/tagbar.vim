@@ -766,7 +766,7 @@ function! s:InitTypes() abort
         \ {'short' : 'f', 'long' : 'functions',          'fold' : 0, 'stl' : 1},
         \ {'short' : 'a', 'long' : 'autocommand groups', 'fold' : 1, 'stl' : 1},
         \ {'short' : 'c', 'long' : 'commands',           'fold' : 0, 'stl' : 0},
-        \ {'short' : 'm', 'long' : 'maps',               'fold' : 1, 'stl' : 0}
+        \ {'short' : 'm', 'long' : 'maps',               'fold' : 0, 'stl' : 0}
     \ ]
     let s:known_types.vim = type_vim
     " YACC {{{3
