@@ -92,7 +92,7 @@ function! s:Init(silent) abort
 
     if !s:autocommands_done
         call s:CreateAutocommands()
-        doautocmd CursorHold
+        call s:AutoUpdate(fnamemodify(expand('%'), ':p'), 0)
     endif
 
     return 1
@@ -3154,7 +3154,12 @@ function! s:EscapeCtagsCmd(ctags_bin, args, ...) abort
 
     " Stupid cmd.exe quoting
     if &shell =~ 'cmd\.exe'
-        let ctags_cmd = substitute(ctags_cmd, '\(&\|\^\)', '^\0', 'g')
+        let reserved_chars = '&()@^'
+        " not allowed in filenames, but escape anyway just in case
+        let reserved_chars .= '<>|'
+        let pattern = join(split(reserved_chars, '\zs'), '\|')
+        let ctags_cmd = substitute(ctags_cmd, '\V\(' . pattern . '\)',
+                                 \ '^\0', 'g')
     endif
 
     if exists('+shellslash')
@@ -3489,11 +3494,13 @@ endfunction
 function! tagbar#currenttag(fmt, default, ...) abort
     if a:0 > 0
         " also test for non-zero value for backwards compatibility
-        let longsig  = a:1 =~# 's' || (type(a:1) == type(0) && a:1 != 0)
-        let fullpath = a:1 =~# 'f'
+        let longsig   = a:1 =~# 's' || (type(a:1) == type(0) && a:1 != 0)
+        let fullpath  = a:1 =~# 'f'
+        let prototype = a:1 =~# 'p'
     else
-        let longsig  = 0
-        let fullpath = 0
+        let longsig   = 0
+        let fullpath  = 0
+        let prototype = 0
     endif
 
     if !s:Init(1)
@@ -3503,7 +3510,11 @@ function! tagbar#currenttag(fmt, default, ...) abort
     let tag = s:GetNearbyTag(0)
 
     if !empty(tag)
-        return printf(a:fmt, tag.str(longsig, fullpath))
+        if prototype
+            return tag.getPrototype(1)
+        else
+            return printf(a:fmt, tag.str(longsig, fullpath))
+        endif
     else
         return a:default
     endif
